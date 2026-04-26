@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(180deg, #0f1a4f, #0a0a0a);
+    color: white;
+}
+
+/* GitHub button */
+.githubBtn {
+    position:fixed;
+    top:10px;
+    right:10px;
+    padding:10px 15px;
+    background:#1f2a5a;
+    color:white;
+    border-radius:10px;
+    text-decoration:none;
+}
+
+.container {
+    width:95%;
+    max-width:800px;
+    margin:auto;
+    padding:20px 0;
+    text-align:center;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+input {
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    margin-bottom:20px;
+}
+
+#results {
+    max-height:60vh;
+    overflow-y:auto;
+    width:100%;
+}
+
+.result {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:#1a1a1a;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    cursor:pointer;
+}
+.result:hover {background:#333;}
+
+.result img {
+    width:50px;
+    height:50px;
+    border-radius:8px;
+}
+
+.hidden {display:none;}
+
+/* DETAIL CARD */
+#detail {
+    background: rgba(0,0,0,0.35);
+    border-radius:20px;
+    padding:20px;
+}
+
+/* EXISTS CARD */
+#exists {
+    display:inline-block;
+    background:#111c44;
+    padding:12px 20px;
+    border-radius:12px;
+    font-size:18px;
+    font-weight:bold;
+    margin:15px 0;
+}
+
+/* MUTATION PANEL */
+#mutations {
+    width:100%;
+    background:#0f1a3a;
+    padding:15px;
+    border-radius:15px;
+}
+
+/* MUTATION ROW */
+.mutationRow {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:12px 0;
+}
+
+.barContainer {
+    flex:1;
+    background:#1a254f;
+    height:12px;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.bar {
+    height:100%;
+    border-radius:10px;
+}
+
+button {
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    background:#444;
+    color:white;
+    margin:10px;
+    cursor:pointer;
+}
+button:hover {background:#666;}
+</style>
+</head>
+
+<body>
+
+<a href="https://github.com/MiroTD/SABTracker/tree/main" target="_blank" class="githubBtn">View Updates</a>
+
+<!-- HOME -->
+<div class="container" id="home">
+<img src="https://static.wikia.nocookie.net/logopedia/images/d/d1/StealABrainrot.png/revision/latest/scale-to-width-down/300?cb=20251213223942">
+<h1>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</h1>
+
+<input id="search" placeholder="Search..." oninput="searchItems()">
+<h1>V1.0.0</h1>
+
+<button onclick="openRollPage()">🎲 Roll Page</button>
+<button onclick="openTextPage()">📄 About Page</button>
+
+<div id="results"></div>
+</div>
+
+<!-- DETAIL -->
+<div class="container hidden" id="detail">
+<img id="detailImg" style="width:120px;border-radius:10px;">
+<h1 id="title"></h1>
+<p id="exists"></p>
+<div id="mutations"></div>
+<button onclick="goHome()">Return</button>
+</div>
+
+<!-- ROLL -->
+<div class="container hidden" id="roll">
+<h1>🎲 Roll a Brainrot</h1>
+<button onclick="rollItem()">Roll</button>
+<div id="rollResult"></div>
+<button onclick="goHome()">Back</button>
+</div>
+
+<!-- ABOUT -->
+<div class="container hidden" id="textPage">
+<h1>About this tracker</h1>
+<p>This Tracker is for Roblox, Steal a Brainrot and is used to navigate steal a brainrot and will have updates in the very future, for now we only contain Exist Counts and a fun rolling page.
+NOTE: This is not official and we are NOT responsible for your actions or trades so do not blame us!</p>
+<button onclick="goHome()">Back</button>
+</div>
+
+<script>
+
+const fallback = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg";
+
+/* MUTATIONS */
+const mutationTypes = [
+{name:"Base", color:"white"},
+{name:"Cyber", color:"cyan"},
+{name:"Divine", color:"#fff4a3"},
+{name:"Cursed", color:"darkred"},
+{name:"Radioactive", color:"lime"},
+{name:"YinYang", color:"linear-gradient(90deg, black 50%, white 50%)"},
+{name:"Galaxy", color:"purple"},
+{name:"Lava", color:"orange"},
+{name:"Candy", color:"pink"},
+{name:"Rainbow", color:"linear-gradient(90deg, red, orange, yellow, green, blue)"},
+{name:"Gold", color:"gold"},
+{name:"Diamond", color:"deepskyblue"}
+];
+
+function generateOver100Mutations(){
+    let result = [];
+    for(let m of mutationTypes){
+        let value = Math.random() * 30;
+
+        if(m.name === "Base") value += 30 + Math.random()*40;
+        if(m.name === "Gold" || m.name === "Diamond") value += 20 + Math.random()*20;
+        if(m.name === "Cyber") value += Math.random()*5;
+
+        result.push({...m, percent: value});
+    }
+    return result;
+}
+
+/* DATA */
+const data = [
+{ name:"Ginger Globo", exists:"2k", img:"https://static.wikia.nocookie.net/stealabr/images/e/e0/Ginger_Globo.png" },
+{ name:"Hydra Bunny", exists:"2.3K+", img:"https://static.wikia.nocookie.net/stealabr/images/0/0b/Hydra_Bunny.png" },
+{ name:"Griffin", exists:"2K+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Griffin.png" },
+{ name:"Bunny and Eggy", exists:"1.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/6/65/Bunny_and_Eggy.png" },
+{ name:"Trippi Troppi", exists:"28.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f0/Trippi_Troppi.png" },
+{ name:"Signore Carapace", exists:"267", img:"https://static.wikia.nocookie.net/stealabr/images/2/2f/Signore_Carapace.png" },
+{ name:"Meowl", exists:"3.2K+", img:"https://static.wikia.nocookie.net/stealabr/images/b/b8/Clear_background_clear_meowl_image.png" },
+{ name:"Headless Horseman", exists:"133", img:"https://static.wikia.nocookie.net/stealabr/images/f/ff/Headlesshorseman.png" },
+{ name:"Esok Sekolah", exists:"5.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/2/2a/EsokSekolah2.png/revision/latest/scale-to-width-down/150?cb=20250819001020" },
+{ name:"Los Mariachis", exists:"5.4K+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Los_Mariachis.png/revision/latest/scale-to-width-down/150?cb=20260417145348" },
+{ name:"Tacorillo Crocodillo", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/b/b9/Tacorillo_Crocodillo.png/revision/latest/scale-to-width-down/150?cb=20260327203035" },
+{ name:"Tacorita Bicicleta", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/9/9d/Tacorita_Bicicleta.png/revision/latest/scale-to-width-down/150?cb=20260328161713" },
+{ name:"Arcadopus", exists:"882.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/3/37/Arcadopus.png/revision/latest/scale-to-width-down/123?cb=20260210215041" },
+{ name:"Tung Tung Tung Sahur", exists:"9.5M+", img:"https://static.wikia.nocookie.net/stealabr/images/e/e3/Tung_Tung_Tung_Sahur.png/revision/latest/scale-to-width-down/94?cb=20260125163843" },
+{ name:"Quesadillo Vampiro", exists:"900K+", img:"https://static.wikia.nocookie.net/stealabr/images/0/0e/VampiroQuesa.png/revision/latest/scale-to-width-down/98?cb=20260124140040" },
+{ name:"Guest 666", exists:"29.9K+", img:"https://static.wikia.nocookie.net/stealabr/images/9/99/Guest666t.png/revision/latest/scale-to-width-down/150?cb=20251102022619" },
+{ name:"Elefanto Frigo", exists:"687", img:"https://static.wikia.nocookie.net/stealabr/images/4/4b/Elefanto_Frigo.png/revision/latest/scale-to-width-down/150?cb=20260417150142" },
+
+{ name:"Noo my Eggs", exists:"321k", img:"https://static.wikia.nocookie.net/stealabr/images/7/74/Noo_my_Eggs.png/revision/latest/scale-to-width-down/123?cb=20260330163127"},
+{ name:"Pipi Corni", exists:"415k", img:"https://static.wikia.nocookie.net/stealabr/images/5/53/PipiCorni.png/revision/latest/scale-to-width-down/135?cb=20251128210620"},
+{ name:"Strawberry Elephant", exists:"2.2k", img:"https://static.wikia.nocookie.net/stealabr/images/5/58/Strawberryelephant.png/revision/latest/scale-to-width-down/144?cb=20260317001745"},
+{ name:"Tictac Sahur", exists:"627k+", img:"https://static.wikia.nocookie.net/stealabr/images/6/6f/Time_moving_slow.png/revision/latest/scale-to-width-down/147?cb=20251103171934"},
+{ name:"Trililikalika Trililikalako", exists:"4.2k", img:"https://static.wikia.nocookie.net/stealabr/images/1/1f/Tirilikalika_Tirilikalako.png/revision/latest/scale-to-width-down/150?cb=20260417145936"},
+{ name:"Noo La Polizia", exists:"50k+", img:"https://static.wikia.nocookie.net/stealabr/images/8/8f/Nooo_my_polizia.png/revision/latest/scale-to-width-down/268?cb=20251111082121"},
+{ name:"Las Capuchinas", exists:"25k+", img:"https://static.wikia.nocookie.net/stealabr/images/3/39/Las_Cappuchinas.png/revision/latest/scale-to-width-down/268?cb=20251005122531"}
+];
+
+/* SEARCH */
+function searchItems(){
+let q = search.value.toLowerCase();
+results.innerHTML="";
+
+data.filter(x=>x.name.toLowerCase().includes(q))
+.forEach(item=>{
+let div=document.createElement("div");
+div.className="result";
+
+div.innerHTML=`
+<img src="${item.img}" onerror="this.src='${fallback}'">
+<div>
+<b>${item.name}</b><br>
+<small>${item.exists} Exists</small>
+</div>
+`;
+
+div.onclick=()=>showDetail(item);
+results.appendChild(div);
+});
+}
+
+/* DETAIL */
+function showDetail(item){
+home.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.add("hidden");
+detail.classList.remove("hidden");
+
+detailImg.src=item.img;
+title.innerText=item.name;
+
+/* EXISTS styled */
+exists.innerHTML = `Total Exists<br><span style="font-size:22px">${item.exists}</span>`;
+
+mutations.innerHTML="<h3>Mutations</h3>";
+
+let m = generateOver100Mutations();
+
+m.forEach(x=>{
+let row=document.createElement("div");
+row.className="mutationRow";
+
+let label=document.createElement("span");
+label.style.width="120px";
+label.innerText=x.name;
+
+let barWrap=document.createElement("div");
+barWrap.className="barContainer";
+
+let bar=document.createElement("div");
+bar.className="bar";
+bar.style.width=Math.min(x.percent,100)+"%";
+bar.style.background=x.color;
+
+let percent=document.createElement("span");
+percent.style.marginLeft="10px";
+percent.innerText=x.percent.toFixed(1)+"%";
+
+barWrap.appendChild(bar);
+
+row.appendChild(label);
+row.appendChild(barWrap);
+row.appendChild(percent);
+
+mutations.appendChild(row);
+});
+}
+
+/* NAVIGATION */
+function openRollPage(){
+home.classList.add("hidden");
+detail.classList.add("hidden");
+textPage.classList.add("hidden");
+roll.classList.remove("hidden");
+}
+
+function openTextPage(){
+home.classList.add("hidden");
+detail.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.remove("hidden");
+}
+
+function goHome(){
+home.classList.remove("hidden");
+detail.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.add("hidden");
+}
+
+/* ROLL */
+function rollItem(){
+let item = data[Math.floor(Math.random()*data.length)];
+
+rollResult.innerHTML=`
+<h2>${item.name}</h2>
+<img src="${item.img}" style="width:120px;border-radius:10px;">
+<p>${item.exists} Exists</p>
+<button onclick='showDetail(${JSON.stringify(item)})'>Open</button>
+`;
+}
+
+</script>
+
+</body>
+</html>
