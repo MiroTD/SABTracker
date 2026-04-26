@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0a0a0a;
+    color: white;
+}
+
+.container {
+    width:95%;
+    max-width:800px;
+    margin:auto;
+    padding:20px 0;
+    text-align:center;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+input {
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    margin-bottom:20px;
+}
+
+#results {
+    max-height:60vh;
+    overflow-y:auto;
+    width:100%;
+}
+
+.result {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:#1a1a1a;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    cursor:pointer;
+}
+.result:hover {background:#333;}
+
+.result img {
+    width:50px;
+    height:50px;
+    border-radius:8px;
+}
+
+.hidden {display:none;}
+
+.mutationRow {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:8px 0;
+    width:100%;
+}
+
+.circle {
+    width:12px;
+    height:12px;
+    border-radius:50%;
+}
+
+.barContainer {
+    flex:1;
+    background:#222;
+    height:10px;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.bar {
+    height:100%;
+}
+
+button {
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    background:#444;
+    color:white;
+    margin:10px;
+    cursor:pointer;
+}
+button:hover {background:#666;}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div class="container" id="home">
+<h1>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</h1>
+
+<input id="search" placeholder="Search..." oninput="searchItems()">
+
+<button onclick="openRollPage()">🎲 Roll Page</button>
+<button onclick="openTextPage()">📄 About Page</button>
+
+<div id="results"></div>
+</div>
+
+<!-- DETAIL -->
+<div class="container hidden" id="detail">
+<img id="detailImg" style="width:120px;border-radius:10px;">
+<h1 id="title"></h1>
+<p id="exists"></p>
+<div id="mutations"></div>
+<button onclick="goHome()">Return</button>
+</div>
+
+<!-- ROLL -->
+<div class="container hidden" id="roll">
+<h1>🎲 Roll a Brainrot</h1>
+<button onclick="rollItem()">Roll</button>
+<div id="rollResult"></div>
+<button onclick="goHome()">Back</button>
+</div>
+
+<!-- NEW TEXT PAGE -->
+<div class="container hidden" id="textPage">
+<h1>About this tracker</h1>
+<p>This Tracker is for Roblox, Steal a Brainrot and is used to navigate steal a brainrot and will have updates in the very future, for now we only contain Exist Counts and a fun rolling page.
+NOTE: This is not official and we are NOT responsible for your actions or trades so do not blame us!</p>
+<button onclick="goHome()">Back</button>
+</div>
+
+<script>
+
+const fallback = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg";
+
+/* MUTATIONS */
+const mutationTypes = [
+{name:"Base", color:"white"},
+{name:"Cyber", color:"cyan"},
+{name:"Divine", color:"#fff4a3"},
+{name:"Cursed", color:"darkred"},
+{name:"Radioactive", color:"lime"},
+{name:"YinYang", color:"linear-gradient(90deg, black 50%, white 50%)"},
+{name:"Galaxy", color:"purple"},
+{name:"Lava", color:"orange"},
+{name:"Candy", color:"pink"},
+{name:"Rainbow", color:"linear-gradient(90deg, red, orange, yellow, green, blue)"},
+{name:"Gold", color:"gold"},
+{name:"Diamond", color:"deepskyblue"}
+];
+
+function generateOver100Mutations(){
+    let result = [];
+    for(let m of mutationTypes){
+        let value = Math.random() * 30;
+
+        if(m.name === "Base") value += 30 + Math.random()*40;
+        if(m.name === "Gold" || m.name === "Diamond") value += 20 + Math.random()*20;
+        if(m.name === "Cyber") value += Math.random()*5;
+
+        result.push({...m, percent: value});
+    }
+    return result;
+}
+
+/* DATA */
+const data = [
+{ name:"Ginger Globo", exists:"2k", img:"https://static.wikia.nocookie.net/stealabr/images/e/e0/Ginger_Globo.png" },
+{ name:"Hydra Bunny", exists:"2.3K+", img:"https://static.wikia.nocookie.net/stealabr/images/0/0b/Hydra_Bunny.png" },
+{ name:"Griffin", exists:"2K+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Griffin.png" },
+{ name:"Bunny and Eggy", exists:"1.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/6/65/Bunny_and_Eggy.png" },
+{ name:"Trippi Troppi", exists:"28.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f0/Trippi_Troppi.png" },
+{ name:"Signore Carapace", exists:"267", img:"https://static.wikia.nocookie.net/stealabr/images/2/2f/Signore_Carapace.png" },
+{ name:"Meowl", exists:"3.2K+", img:"https://static.wikia.nocookie.net/stealabr/images/b/b8/Clear_background_clear_meowl_image.png" },
+{ name:"Headless Horseman", exists:"133", img:"https://static.wikia.nocookie.net/stealabr/images/f/ff/Headlesshorseman.png" },
+{ name:"Esok Sekolah", exists:"5.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/Esok_Sekolah.png" },
+{ name:"Los Mariachis", exists:"5.4K+", img:"https://static.wikia.nocookie.net/stealabr/images/Los_Mariachis.png" },
+{ name:"Tacorillo Crocodillo", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/Tacorillo_Crocodillo.png" },
+{ name:"Tacorita Bicicleta", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/Tacorita_Bicicleta.png" },
+{ name:"Arcadopus", exists:"882.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/Arcadopus.png" },
+{ name:"Tung Tung Tung Sahur", exists:"9.5M+", img:"https://static.wikia.nocookie.net/stealabr/images/Tung_Tung_Tung_Sahur.png" },
+{ name:"Quesadillo Vampiro", exists:"900K+", img:"https://static.wikia.nocookie.net/stealabr/images/Quesadillo_Vampiro.png" },
+{ name:"Guest 666", exists:"29.9K+", img:"https://static.wikia.nocookie.net/stealabr/images/Guest_666.png" },
+{ name:"Elefanto Frigo", exists:"687", img:"https://static.wikia.nocookie.net/stealabr/images/Elefanto_Frigo.png" },
+  { name:"Noo my Eggs", exists:"321k", img:"https://static.wikia.nocookie.net/stealabr/images/7/74/Noo_my_Eggs.png/revision/latest/scale-to-width-down/123?cb=20260330163127"}, { name:"Pipi Corni", exists:"415k", img:"https://static.wikia.nocookie.net/stealabr/images/5/53/PipiCorni.png/revision/latest/scale-to-width-down/135?cb=20251128210620"}, { name:"Strawberry Elephant", exists:"2.2k", img:"https://static.wikia.nocookie.net/stealabr/images/5/58/Strawberryelephant.png/revision/latest/scale-to-width-down/144?cb=20260317001745"}, { name:"Tictac Sahur", exists:"627k+", img:""}, { name:"Trililikalika Trililikalako", exists:"4.2k", img:"https://static.wikia.nocookie.net/stealabr/images/1/1f/Tirilikalika_Tirilikalako.png/revision/latest/scale-to-width-down/150?cb=20260417145936"}
+];
+
+/* SEARCH */
+function searchItems(){
+let q = search.value.toLowerCase();
+results.innerHTML="";
+
+data.filter(x=>x.name.toLowerCase().includes(q))
+.forEach(item=>{
+let div=document.createElement("div");
+div.className="result";
+
+div.innerHTML=`
+<img src="${item.img}" onerror="this.src='${fallback}'">
+<div>
+<b>${item.name}</b><br>
+<small>${item.exists} Exists</small>
+</div>
+`;
+
+div.onclick=()=>showDetail(item);
+results.appendChild(div);
+});
+}
+
+/* DETAIL */
+function showDetail(item){
+home.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.add("hidden");
+detail.classList.remove("hidden");
+
+detailImg.src=item.img;
+title.innerText=item.name;
+exists.innerText=item.exists+" Exists";
+
+mutations.innerHTML="";
+let m = generateOver100Mutations();
+
+m.forEach(x=>{
+let row=document.createElement("div");
+row.className="mutationRow";
+
+let c=document.createElement("div");
+c.className="circle";
+c.style.background=x.color;
+
+let label=document.createElement("span");
+label.innerText=x.name+" ("+x.percent.toFixed(2)+"%)";
+
+let barWrap=document.createElement("div");
+barWrap.className="barContainer";
+
+let bar=document.createElement("div");
+bar.className="bar";
+bar.style.width=Math.min(x.percent,100)+"%";
+bar.style.background=x.color;
+
+barWrap.appendChild(bar);
+
+row.appendChild(c);
+row.appendChild(label);
+row.appendChild(barWrap);
+
+mutations.appendChild(row);
+});
+}
+
+/* NAVIGATION */
+function openRollPage(){
+home.classList.add("hidden");
+detail.classList.add("hidden");
+textPage.classList.add("hidden");
+roll.classList.remove("hidden");
+}
+
+function openTextPage(){
+home.classList.add("hidden");
+detail.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.remove("hidden");
+}
+
+function goHome(){
+home.classList.remove("hidden");
+detail.classList.add("hidden");
+roll.classList.add("hidden");
+textPage.classList.add("hidden");
+}
+
+/* ROLL */
+function rollItem(){
+let item = data[Math.floor(Math.random()*data.length)];
+
+rollResult.innerHTML=`
+<h2>${item.name}</h2>
+<img src="${item.img}" style="width:120px;border-radius:10px;">
+<p>${item.exists} Exists</p>
+<button onclick='showDetail(${JSON.stringify(item)})'>Open</button>
+`;
+}
+
+</script>
+
+</body>
+</html>
