@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</title>
+<title>Steal a Brainrot Tracker V2.0.0</title>
 
 <style>
 body {
@@ -13,7 +13,6 @@ body {
     color: white;
 }
 
-/* GitHub button */
 .githubBtn {
     position:fixed;
     top:10px;
@@ -31,7 +30,6 @@ body {
     margin:auto;
     padding:20px 0;
     text-align:center;
-
     display:flex;
     flex-direction:column;
     justify-content:center;
@@ -73,25 +71,22 @@ input {
 
 .hidden {display:none;}
 
-/* DETAIL CARD */
 #detail {
     background: rgba(0,0,0,0.35);
     border-radius:20px;
     padding:20px;
 }
 
-/* EXISTS CARD */
-#exists {
+.statCard {
     display:inline-block;
     background:#111c44;
     padding:12px 20px;
     border-radius:12px;
     font-size:18px;
     font-weight:bold;
-    margin:15px 0;
+    margin:10px;
 }
 
-/* MUTATION PANEL */
 #mutations {
     width:100%;
     background:#0f1a3a;
@@ -99,7 +94,6 @@ input {
     border-radius:15px;
 }
 
-/* MUTATION ROW */
 .mutationRow {
     display:flex;
     align-items:center;
@@ -140,10 +134,10 @@ button:hover {background:#666;}
 <!-- HOME -->
 <div class="container" id="home">
 <img src="https://static.wikia.nocookie.net/logopedia/images/d/d1/StealABrainrot.png/revision/latest/scale-to-width-down/300?cb=20251213223942">
-<h1>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN ATM)</h1>
+<h1>Steal a Brainrot Tracker (MUTATIONS ARE BROKEN BREH)</h1>
 
 <input id="search" placeholder="Search..." oninput="searchItems()">
-<h1>V1.1.0</h1>
+<h1>V2.0.0</h1>
 
 <button onclick="openRollPage()">🎲 Roll Page</button>
 <button onclick="openTextPage()">📄 About Page</button>
@@ -155,7 +149,9 @@ button:hover {background:#666;}
 <div class="container hidden" id="detail">
 <img id="detailImg" style="width:120px;border-radius:10px;">
 <h1 id="title"></h1>
-<p id="exists"></p>
+
+<div id="stats"></div>
+
 <div id="mutations"></div>
 <button onclick="goHome()">Return</button>
 </div>
@@ -171,8 +167,7 @@ button:hover {background:#666;}
 <!-- ABOUT -->
 <div class="container hidden" id="textPage">
 <h1>About this tracker</h1>
-<p>This Tracker is for Roblox, Steal a Brainrot and is used to navigate steal a brainrot and will have updates in the very future, for now we only contain Exist Counts and a fun rolling page.
-NOTE: This is not official and we are NOT responsible for your actions or trades so do not blame us!</p>
+<p>This Tracker now includes CPS/s AND Exists values.</p>
 <button onclick="goHome()">Back</button>
 </div>
 
@@ -212,34 +207,34 @@ function generateOver100Mutations(){
 
 /* DATA */
 const data = [
-{ name:"Ginger Globo", exists:"20k+", img:"https://static.wikia.nocookie.net/stealabr/images/e/e0/Ginger_Globo.png" },
-{ name:"Hydra Bunny", exists:"2.3K+", img:"https://static.wikia.nocookie.net/stealabr/images/0/0b/Hydra_Bunny.png" },
-{ name:"Griffin", exists:"2K+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Griffin.png" },
-{ name:"Bunny and Eggy", exists:"1.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/6/65/Bunny_and_Eggy.png" },
-{ name:"Trippi Troppi", exists:"28.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f0/Trippi_Troppi.png" },
-{ name:"Signore Carapace", exists:"267", img:"https://static.wikia.nocookie.net/stealabr/images/2/2f/Signore_Carapace.png" },
-{ name:"Meowl", exists:"3.2K+", img:"https://static.wikia.nocookie.net/stealabr/images/b/b8/Clear_background_clear_meowl_image.png" },
-{ name:"Headless Horseman", exists:"133", img:"https://static.wikia.nocookie.net/stealabr/images/f/ff/Headlesshorseman.png" },
-{ name:"Esok Sekolah", exists:"5.2M+", img:"https://static.wikia.nocookie.net/stealabr/images/2/2a/EsokSekolah2.png/revision/latest/scale-to-width-down/150?cb=20250819001020" },
-{ name:"Los Mariachis", exists:"5.4K+", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Los_Mariachis.png/revision/latest/scale-to-width-down/150?cb=20260417145348" },
-{ name:"Tacorillo Crocodillo", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/b/b9/Tacorillo_Crocodillo.png/revision/latest/scale-to-width-down/150?cb=20260327203035" },
-{ name:"Tacorita Bicicleta", exists:"1M+", img:"https://static.wikia.nocookie.net/stealabr/images/9/9d/Tacorita_Bicicleta.png/revision/latest/scale-to-width-down/150?cb=20260328161713" },
-{ name:"Arcadopus", exists:"882.8K+", img:"https://static.wikia.nocookie.net/stealabr/images/3/37/Arcadopus.png/revision/latest/scale-to-width-down/123?cb=20260210215041" },
-{ name:"Tung Tung Tung Sahur", exists:"9.5M+", img:"https://static.wikia.nocookie.net/stealabr/images/e/e3/Tung_Tung_Tung_Sahur.png/revision/latest/scale-to-width-down/94?cb=20260125163843" },
-{ name:"Quesadillo Vampiro", exists:"900K+", img:"https://static.wikia.nocookie.net/stealabr/images/0/0e/VampiroQuesa.png/revision/latest/scale-to-width-down/98?cb=20260124140040" },
-{ name:"Guest 666", exists:"29.9K+", img:"https://static.wikia.nocookie.net/stealabr/images/9/99/Guest666t.png/revision/latest/scale-to-width-down/150?cb=20251102022619" },
-{ name:"Elefanto Frigo", exists:"687", img:"https://static.wikia.nocookie.net/stealabr/images/4/4b/Elefanto_Frigo.png/revision/latest/scale-to-width-down/150?cb=20260417150142" },
+{ name:"Ginger Globo", exists:"20k+", cps:"£200k/s", value:"1 Garama/2 Ketupats", img:"https://static.wikia.nocookie.net/stealabr/images/e/e0/Ginger_Globo.png" },
+{ name:"Hydra Bunny", exists:"2.3K+", cps:"£175M/s", value:"5 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/0/0b/Hydra_Bunny.png" },
+{ name:"Griffin", exists:"2K+", cps:"£400M/s", value:"3-7 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Griffin.png" },
+{ name:"Bunny and Eggy", exists:"1.8K+", cps:"£185M/s", value:"3-5 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/6/65/Bunny_and_Eggy.png" },
+{ name:"Trippi Troppi", exists:"28.2M+", cps:"£15/s", value:"1 Rainbow Noobini", img:"https://static.wikia.nocookie.net/stealabr/images/f/f0/Trippi_Troppi.png" },
+{ name:"Signore Carapace", exists:"267", cps:"£105M/s", value:"32 Garamas/10+ Rainbow Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/2/2f/Signore_Carapace.png" },
+{ name:"Meowl", exists:"3.2K+", cps:"£600M/s", value:"15 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/b/b8/Clear_background_clear_meowl_image.png" },
+{ name:"Headless Horseman", exists:"133", cps:"£550M/s", value:"3 Strawberry Elephants", img:"https://static.wikia.nocookie.net/stealabr/images/f/ff/Headlesshorseman.png" },
+{ name:"Esok Sekolah", exists:"5.2M+", cps:"£30M/s", value:"1 La Grande Combinasion", img:"https://static.wikia.nocookie.net/stealabr/images/2/2a/EsokSekolah2.png/revision/latest/scale-to-width-down/150?cb=20250819001020" },
+{ name:"Los Mariachis", exists:"5.4K+", cps:"£30M/s", value:"1-2 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/f/f8/Los_Mariachis.png/revision/latest/scale-to-width-down/150?cb=20260417145348" },
+{ name:"Tacorillo Crocodillo", exists:"1M+", cps:"£12.5M/s", value:"3 Esoks", img:"https://static.wikia.nocookie.net/stealabr/images/b/b9/Tacorillo_Crocodillo.png/revision/latest/scale-to-width-down/150?cb=20260327203035" },
+{ name:"Tacorita Bicicleta", exists:"1M+", cps:"£16.5M/s", value:"4 Ketupats / 1.3 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/9/9d/Tacorita_Bicicleta.png/revision/latest/scale-to-width-down/150?cb=20260328161713" },
+{ name:"Arcadopus", exists:"882.8K+", cps:"£5M/s", value:"1 Esok", img:"https://static.wikia.nocookie.net/stealabr/images/3/37/Arcadopus.png/revision/latest/scale-to-width-down/123?cb=20260210215041" },
+{ name:"Tung Tung Tung Sahur", exists:"9.5M+", cps:"£1.5M/s", value:"Nothing/removed", img:"https://static.wikia.nocookie.net/stealabr/images/e/e3/Tung_Tung_Tung_Sahur.png/revision/latest/scale-to-width-down/94?cb=20260125163843" },
+{ name:"Quesadillo Vampiro", exists:"900K+", cps:"£3.5M/s", value:"1 Ketupat", img:"https://static.wikia.nocookie.net/stealabr/images/0/0e/VampiroQuesa.png/revision/latest/scale-to-width-down/98?cb=20260124140040" },
+{ name:"Guest 666", exists:"29.9K+", cps:"£66.6M/s", value:"2-4 Coloured Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/9/99/Guest666t.png/revision/latest/scale-to-width-down/150?cb=20251102022619" },
+{ name:"Elefanto Frigo", exists:"687", cps:"£85M/s", value:"3 Meowls", img:"https://static.wikia.nocookie.net/stealabr/images/4/4b/Elefanto_Frigo.png/revision/latest/scale-to-width-down/150?cb=20260417150142" },
 
-{ name:"Noo my Eggs", exists:"321k", img:"https://static.wikia.nocookie.net/stealabr/images/7/74/Noo_my_Eggs.png/revision/latest/scale-to-width-down/123?cb=20260330163127"},
-{ name:"Pipi Corni", exists:"415k", img:"https://static.wikia.nocookie.net/stealabr/images/5/53/PipiCorni.png/revision/latest/scale-to-width-down/135?cb=20251128210620"},
-{ name:"Strawberry Elephant", exists:"2.2k", img:"https://static.wikia.nocookie.net/stealabr/images/5/58/Strawberryelephant.png/revision/latest/scale-to-width-down/144?cb=20260317001745"},
-{ name:"Tictac Sahur", exists:"627k+", img:"https://static.wikia.nocookie.net/stealabr/images/6/6f/Time_moving_slow.png/revision/latest/scale-to-width-down/147?cb=20251103171934"},
-{ name:"Trililikalika Trililikalako", exists:"4.2k", img:"https://static.wikia.nocookie.net/stealabr/images/1/1f/Tirilikalika_Tirilikalako.png/revision/latest/scale-to-width-down/150?cb=20260417145936"},
-{ name:"Noo La Polizia", exists:"50k+ (Estimated)", img:"https://static.wikia.nocookie.net/stealabr/images/8/8f/Nooo_my_polizia.png/revision/latest/scale-to-width-down/268?cb=20251111082121"},
-{ name:"Las Capuchinas", exists:"25k+ (Estimated)", img:"https://static.wikia.nocookie.net/stealabr/images/3/39/Las_Cappuchinas.png/revision/latest/scale-to-width-down/268?cb=20251005122531"},
-{ name:"Garama and Madundung", exists:"500k+", img:"https://static.wikia.nocookie.net/stealabr/images/e/ee/Garamadundung.png/revision/latest?cb=20250816022557"}
+{ name:"Noo my Eggs", exists:"321k", cps:"£7M/s", value:"3 Esoks", img:"https://static.wikia.nocookie.net/stealabr/images/7/74/Noo_my_Eggs.png/revision/latest/scale-to-width-down/123?cb=20260330163127"},
+{ name:"Pipi Corni", exists:"415k", cps:"£14/s", value:"1-2 Ketupats", img:"https://static.wikia.nocookie.net/stealabr/images/5/53/PipiCorni.png/revision/latest/scale-to-width-down/135?cb=20251128210620"},
+{ name:"Strawberry Elephant", exists:"2.2k", cps:"£750M/s", value:"7 DragonsPasta", img:"https://static.wikia.nocookie.net/stealabr/images/5/58/Strawberryelephant.png/revision/latest/scale-to-width-down/144?cb=20260317001745"},
+{ name:"Tictac Sahur", exists:"627k+", cps:"£37.5M/s", value:"1 Ketupat", img:"https://static.wikia.nocookie.net/stealabr/images/6/6f/Time_moving_slow.png/revision/latest/scale-to-width-down/147?cb=20251103171934"},
+{ name:"Trililikalika Trililikalako", exists:"4.2k", cps:"£42.5M/s", value:"1 Skibidi", img:"https://static.wikia.nocookie.net/stealabr/images/1/1f/Tirilikalika_Tirilikalako.png/revision/latest/scale-to-width-down/150?cb=20260417145936"},
+{ name:"Noo La Polizia", exists:"50k+ (Estimated)", cps:"£280K/s", value:"1 Garama", img:"https://static.wikia.nocookie.net/stealabr/images/8/8f/Nooo_my_polizia.png/revision/latest/scale-to-width-down/268?cb=20251111082121"},
+{ name:"Las Capuchinas", exists:"25k+ (Estimated)", cps:"£185K/s", value:"1 Garama", img:"https://static.wikia.nocookie.net/stealabr/images/3/39/Las_Cappuchinas.png/revision/latest/scale-to-width-down/268?cb=20251005122531"},
+{ name:"Garama and Madundung", exists:"500k+", cps:"£50M/s", value:"Ketchuru and decent adds", img:"https://static.wikia.nocookie.net/stealabr/images/e/ee/Garamadundung.png/revision/latest?cb=20250816022557"},
+{ name:"Dug dug dug", exists:"29k+", cps:"£35M/s", value:"3 Garamas", img:"https://static.wikia.nocookie.net/stealabr/images/d/df/Dug_dug_dug.png/revision/latest/scale-to-width-down/268?cb=20260417145819"}
 ];
-
 /* SEARCH */
 function searchItems(){
 let q = search.value.toLowerCase();
@@ -254,7 +249,7 @@ div.innerHTML=`
 <img src="${item.img}" onerror="this.src='${fallback}'">
 <div>
 <b>${item.name}</b><br>
-<small>${item.exists} Exists</small>
+<small>${item.cps} CPS/s • ${item.exists} Exists</small>
 </div>
 `;
 
@@ -273,8 +268,11 @@ detail.classList.remove("hidden");
 detailImg.src=item.img;
 title.innerText=item.name;
 
-/* EXISTS styled */
-exists.innerHTML = `Total Exists<br><span style="font-size:22px">${item.exists}</span>`;
+stats.innerHTML = `
+<div class="statCard">CPS/s<br>${item.cps}</div>
+<div class="statCard">Exists<br>${item.exists}</div>
+<div class="statCard">Value<br>${item.value}</div>
+`;
 
 mutations.innerHTML="<h3>Mutations</h3>";
 
@@ -310,7 +308,6 @@ mutations.appendChild(row);
 });
 }
 
-/* NAVIGATION */
 function openRollPage(){
 home.classList.add("hidden");
 detail.classList.add("hidden");
@@ -332,14 +329,13 @@ roll.classList.add("hidden");
 textPage.classList.add("hidden");
 }
 
-/* ROLL */
 function rollItem(){
 let item = data[Math.floor(Math.random()*data.length)];
 
 rollResult.innerHTML=`
 <h2>${item.name}</h2>
 <img src="${item.img}" style="width:120px;border-radius:10px;">
-<p>${item.exists} Exists</p>
+<p>${item.cps} CPS/s • ${item.exists} Exists</p>
 <button onclick='showDetail(${JSON.stringify(item)})'>Open</button>
 `;
 }
