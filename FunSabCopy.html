@@ -1,47 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Duel FPS Polished</title>
+  <title>Duel FPS FULL</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body { margin:0; overflow:hidden; background:#0a0a0a; font-family:Arial; color:white; }
 
-    #menu, #hud, #end {
+    #menu, #hud, #end, #confirmExit {
       position:absolute; width:100%; text-align:center;
     }
 
     #menu { top:30%; }
     button {
-      padding:12px 20px;
-      margin:8px;
-      font-size:16px;
-      background:#222;
-      color:white;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
+      padding:12px 20px; margin:6px; font-size:16px;
+      background:#222; color:white; border:none; border-radius:8px;
     }
-    button:hover { background:#444; }
 
-    #hud { top:10px; display:none; font-size:18px; }
+    #hud { top:10px; display:none; }
 
     #crosshair {
-      position:absolute;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
       font-size:22px;
-      opacity:0.8;
     }
 
     #countdown {
-      position:absolute;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      font-size:72px;
-      color:white;
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      font-size:72px; color:white;
     }
 
-    #end { top:40%; display:none; font-size:32px; }
+    #end { top:40%; display:none; }
+    #confirmExit { top:40%; display:none; }
+
+    /* MOBILE UI */
+    #joystick {
+      position:absolute; bottom:20px; left:20px;
+      width:120px; height:120px;
+      border:2px solid rgba(255,255,255,0.4);
+      border-radius:50%; display:none;
+    }
+    #stick {
+      position:absolute; width:40px; height:40px;
+      background:white; border-radius:50%; left:40px; top:40px;
+    }
+    #jumpBtn, #shootBtn {
+      position:absolute; right:20px; padding:14px; font-size:16px;
+      background:#333; border-radius:10px; display:none;
+    }
+    #jumpBtn { bottom:90px; }
+    #shootBtn { bottom:20px; }
   </style>
 </head>
 <body>
@@ -53,10 +59,25 @@
   <button onclick="start('sweat')">Sweat</button>
 </div>
 
-<div id="hud">Round <span id="r">1</span> | You <span id="ps">0</span> Bot <span id="bs">0</span></div>
+<div id="hud">
+  Round <span id="r">1</span> | You <span id="ps">0</span> Bot <span id="bs">0</span>
+  <br><button onclick="askExit()">Exit</button>
+</div>
+
 <div id="crosshair">+</div>
 <div id="countdown"></div>
 <div id="end"></div>
+
+<div id="confirmExit">
+  <h2>Exit match?</h2>
+  <button onclick="exitGame()">Yes</button>
+  <button onclick="closeExit()">No</button>
+</div>
+
+<!-- MOBILE -->
+<div id="joystick"><div id="stick"></div></div>
+<button id="jumpBtn">Jump</button>
+<button id="shootBtn">Shoot</button>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 <script>
@@ -64,6 +85,7 @@ let scene,camera,renderer,bot,bullets=[];
 let keys={},yaw=0,pitch=0,vy=0,onGround=true;
 let diff='weak',round=1,ps=0,bs=0,can=false;
 let playerPos = new THREE.Vector3(20,1,20);
+let isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
 function init(){
 scene=new THREE.Scene();
@@ -72,42 +94,41 @@ renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// floor
-let floor=new THREE.Mesh(new THREE.BoxGeometry(80,1,80),new THREE.MeshStandardMaterial({color:0x1a1a1a}));
-floor.position.y=-.5;scene.add(floor);
-
-// light
 let light=new THREE.DirectionalLight(0xffffff,1);
 light.position.set(10,20,10);
 scene.add(light);
 
-// platforms
+let floor=new THREE.Mesh(new THREE.BoxGeometry(80,1,80),new THREE.MeshStandardMaterial({color:0x1a1a1a}));
+floor.position.y=-.5;scene.add(floor);
+
 for(let i=0;i<6;i++){
  let p=new THREE.Mesh(new THREE.BoxGeometry(4,1,4),new THREE.MeshStandardMaterial({color:0x333333}));
  p.position.set(-15+i*6,1,-5);
  scene.add(p);
 }
 
-// bot
 bot=new THREE.Mesh(new THREE.BoxGeometry(1,2,1),new THREE.MeshStandardMaterial({color:0xff4444}));
 bot.position.set(-20,1,-20);
 scene.add(bot);
 
-// better gun (still simple but nicer)
 let gun = new THREE.Group();
 let body = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,1.5), new THREE.MeshStandardMaterial({color:0x555555}));
 let barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1), new THREE.MeshStandardMaterial({color:0x222222}));
 barrel.rotation.x = Math.PI/2;
 barrel.position.z = -1;
-
- gun.add(body);
- gun.add(barrel);
+ gun.add(body); gun.add(barrel);
  gun.position.set(0.6,-0.6,-2);
  camera.add(gun);
  scene.add(camera);
 
 camera.position.copy(playerPos).add(new THREE.Vector3(0,1,2));
-document.body.requestPointerLock();
+if(!isMobile) document.body.requestPointerLock();
+
+if(isMobile){
+ joystick.style.display='block';
+ jumpBtn.style.display='block';
+ shootBtn.style.display='block';
+}
 }
 
 onkeydown=e=>keys[e.key.toLowerCase()]=1;
@@ -139,7 +160,6 @@ function move(){
  camera.position.copy(playerPos).add(new THREE.Vector3(0,1,2));
  camera.rotation.set(pitch,yaw,0);
 
- // bot same speed + dodge
  let dir=new THREE.Vector3().subVectors(playerPos,bot.position).normalize();
  let side=new THREE.Vector3(-dir.z,0,dir.x);
  let dodge=Math.sin(Date.now()*0.006)*3;
@@ -158,6 +178,7 @@ function shoot(from,to){
 }
 
 onclick=()=>{if(can) shoot(camera, bot.position)};
+shootBtn.onclick=()=>{if(can) shoot(camera, bot.position)};
 
 function bulletsUpdate(){
  bullets.forEach((b,i)=>{
@@ -189,6 +210,24 @@ function count(){
  },1000);
 }
 
+function askExit(){ confirmExit.style.display='block'; }
+function closeExit(){ confirmExit.style.display='none'; }
+function exitGame(){ location.reload(); }
+
+// joystick
+let stick=document.getElementById('stick');
+joystick.addEventListener('touchmove', e=>{
+ let t=e.touches[0]; let r=joystick.getBoundingClientRect();
+ let x=(t.clientX-r.left-60)/40;
+ let y=(t.clientY-r.top-60)/40;
+ stick.style.left=(40+x*20)+'px';
+ stick.style.top=(40+y*20)+'px';
+ playerPos.x+=x*0.3;
+ playerPos.z+=y*0.3;
+});
+
+jumpBtn.onclick=()=>{ if(onGround){vy=.4;onGround=false;} };
+
 function loop(){ requestAnimationFrame(loop); move(); bulletsUpdate(); renderer.render(scene,camera); }
 
 const menu=document.getElementById('menu');
@@ -198,6 +237,7 @@ const psEl=document.getElementById('ps');
 const bsEl=document.getElementById('bs');
 const countdown=document.getElementById('countdown');
 const endDiv=document.getElementById('end');
+const confirmExit=document.getElementById('confirmExit');
 </script>
 </body>
 </html>
