@@ -1,243 +1,1131 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Duel FPS FULL</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classroom Chaos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; overflow:hidden; background:#0a0a0a; font-family:Arial; color:white; }
-
-    #menu, #hud, #end, #confirmExit {
-      position:absolute; width:100%; text-align:center;
+    :root {
+      --yellow: #FFD166;
+      --red: #EF476F;
+      --green: #06D6A0;
+      --blue: #118AB2;
+      --dark: #073B4C;
+      --panel: rgba(7,59,76,0.92);
     }
 
-    #menu { top:30%; }
-    button {
-      padding:12px 20px; margin:6px; font-size:16px;
-      background:#222; color:white; border:none; border-radius:8px;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      overflow: hidden;
+      font-family: 'Nunito', sans-serif;
+      background: #000;
+      cursor: default;
     }
 
-    #hud { top:10px; display:none; }
+    canvas { display: block; }
 
-    #crosshair {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      font-size:22px;
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, rgba(7,59,76,0.95), rgba(17,138,178,0.85));
+      backdrop-filter: blur(6px);
+      border-bottom: 2px solid var(--yellow);
+      z-index: 20;
+      pointer-events: none;
     }
 
-    #countdown {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      font-size:72px; color:white;
+    .hud-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.15rem;
+      color: white;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
-    #end { top:40%; display:none; }
-    #confirmExit { top:40%; display:none; }
+    .hud-icon { font-size: 1.4rem; }
 
-    /* MOBILE UI */
-    #joystick {
-      position:absolute; bottom:20px; left:20px;
-      width:120px; height:120px;
-      border:2px solid rgba(255,255,255,0.4);
-      border-radius:50%; display:none;
+    #timerVal { color: var(--yellow); }
+    #coinsVal { color: var(--yellow); }
+    #noiseVal { color: var(--green); }
+
+    #timerVal.low { color: var(--red); animation: pulse 0.5s infinite alternate; }
+
+    #storeBtn {
+      pointer-events: all;
+      background: linear-gradient(135deg, var(--yellow), #f4a261);
+      color: var(--dark);
+      border: none;
+      border-radius: 20px;
+      padding: 7px 18px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      transition: transform 0.1s, box-shadow 0.1s;
     }
-    #stick {
-      position:absolute; width:40px; height:40px;
-      background:white; border-radius:50%; left:40px; top:40px;
+    #storeBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.4); }
+    #storeBtn:active { transform: translateY(0); }
+
+    /* Toy indicator */
+    #toyInfo {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 2px solid var(--yellow);
+      border-radius: 14px;
+      padding: 8px 20px;
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      z-index: 20;
+      display: none;
+      text-align: center;
+      pointer-events: none;
     }
-    #jumpBtn, #shootBtn {
-      position:absolute; right:20px; padding:14px; font-size:16px;
-      background:#333; border-radius:10px; display:none;
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--panel);
+      border: 2px solid var(--yellow);
+      border-radius: 20px;
+      color: white;
+      padding: 36px 44px;
+      display: none;
+      text-align: center;
+      z-index: 30;
+      min-width: 320px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.7);
+      animation: popIn 0.25s ease;
     }
-    #jumpBtn { bottom:90px; }
-    #shootBtn { bottom:20px; }
+
+    @keyframes popIn {
+      from { transform: translate(-50%,-50%) scale(0.85); opacity: 0; }
+      to   { transform: translate(-50%,-50%) scale(1);    opacity: 1; }
+    }
+
+    .overlay h1, .overlay h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      color: var(--yellow);
+      margin-bottom: 8px;
+    }
+
+    .overlay p { color: #cde; font-size: 1rem; margin-bottom: 18px; line-height: 1.5; }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 26px;
+      margin: 6px;
+      border: none;
+      border-radius: 30px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 18px rgba(0,0,0,0.4); }
+    .btn-yellow { background: var(--yellow); color: var(--dark); }
+    .btn-green  { background: var(--green);  color: var(--dark); }
+    .btn-red    { background: var(--red);    color: white; }
+    .btn-blue   { background: var(--blue);   color: white; }
+
+    /* Store overlay */
+    #store {
+      min-width: 440px;
+      max-width: 560px;
+    }
+
+    .store-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .store-item {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 14px 10px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      position: relative;
+    }
+    .store-item:hover:not(.owned):not(.cant-afford) {
+      background: rgba(255,209,102,0.12);
+      border-color: var(--yellow);
+      transform: translateY(-2px);
+    }
+    .store-item.owned {
+      border-color: var(--green);
+      background: rgba(6,214,160,0.1);
+      cursor: default;
+    }
+    .store-item.cant-afford { opacity: 0.45; cursor: not-allowed; }
+    .store-item.equipped {
+      border-color: var(--yellow);
+      background: rgba(255,209,102,0.15);
+    }
+
+    .store-item .toy-emoji { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+    .store-item .toy-name  { font-family: 'Fredoka One', cursive; font-size: 1rem; color: white; }
+    .store-item .toy-noise { font-size: 0.78rem; color: #adc; margin: 3px 0; }
+    .store-item .toy-price { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--yellow); }
+    .store-item .toy-badge {
+      position: absolute; top: 6px; right: 6px;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 10px;
+    }
+    .badge-owned    { background: var(--green); color: var(--dark); }
+    .badge-equipped { background: var(--yellow); color: var(--dark); }
+
+    .noise-bar {
+      display: flex; gap: 2px; justify-content: center; margin: 3px 0;
+    }
+    .noise-pip {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .noise-pip.on  { background: var(--red); }
+    .noise-pip.off { background: rgba(255,255,255,0.15); }
+
+    /* Dialog */
+    #dialog { min-width: 280px; }
+    #dialog .teacher-face { font-size: 3rem; margin-bottom: 8px; }
+
+    /* Notification toast */
+    #toast {
+      position: absolute;
+      bottom: 70px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(6,214,160,0.95);
+      color: var(--dark);
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      padding: 10px 24px;
+      border-radius: 30px;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
   </style>
 </head>
 <body>
 
-<div id="menu">
-  <h1>Duel FPS</h1>
-  <button onclick="start('weak')">Weak</button>
-  <button onclick="start('mid')">Mid</button>
-  <button onclick="start('sweat')">Sweat</button>
-</div>
-
+<!-- HUD -->
 <div id="hud">
-  Round <span id="r">1</span> | You <span id="ps">0</span> Bot <span id="bs">0</span>
-  <br><button onclick="askExit()">Exit</button>
+  <div class="hud-item"><span class="hud-icon">⏱️</span> <span id="timerVal">90</span>s</div>
+  <div class="hud-item"><span class="hud-icon">🔊</span> Noise: <span id="noiseVal">–</span></div>
+  <div class="hud-item"><span class="hud-icon">🪙</span> <span id="coinsVal">0</span></div>
+  <button id="storeBtn" onclick="openStore()">🛒 Shop</button>
 </div>
 
-<div id="crosshair">+</div>
-<div id="countdown"></div>
-<div id="end"></div>
+<!-- Toy Info -->
+<div id="toyInfo"></div>
 
-<div id="confirmExit">
-  <h2>Exit match?</h2>
-  <button onclick="exitGame()">Yes</button>
-  <button onclick="closeExit()">No</button>
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Menu -->
+<div class="overlay" id="menu" style="display:block;">
+  <h1>🏫 Classroom Chaos</h1>
+  <p>Click your toy when the teacher isn't watching.<br>Survive 90 seconds without getting caught!</p>
+  <div id="menuCoins" style="font-family:'Fredoka One',cursive; color:var(--yellow); font-size:1.1rem; margin-bottom:14px;">🪙 Saved Coins: <span id="savedCoinsDisplay">0</span></div>
+  <button class="btn btn-yellow" onclick="startGame()">▶ Play</button>
+  <button class="btn btn-blue" onclick="openStore()">🛒 Shop</button>
 </div>
 
-<!-- MOBILE -->
-<div id="joystick"><div id="stick"></div></div>
-<button id="jumpBtn">Jump</button>
-<button id="shootBtn">Shoot</button>
+<!-- Game Over -->
+<div class="overlay" id="gameOver">
+  <h2>😬 Busted!</h2>
+  <p id="gameOverMsg">The teacher caught you!</p>
+  <button class="btn btn-red" onclick="restartGame()">🔄 Try Again</button>
+  <button class="btn btn-blue" onclick="openStore()">🛒 Shop</button>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<!-- Win Screen -->
+<div class="overlay" id="winScreen">
+  <h2>🎉 Class Dismissed!</h2>
+  <p id="winMsg">You survived the whole lesson!</p>
+  <button class="btn btn-green" onclick="restartGame()">▶ Play Again</button>
+  <button class="btn btn-blue" onclick="openStore()">🛒 Shop</button>
+</div>
+
+<!-- Dialog -->
+<div class="overlay" id="dialog">
+  <div class="teacher-face">👩‍🏫</div>
+  <h2 style="font-size:1.4rem; margin-bottom:8px;">Excuse me…</h2>
+  <p>Did you just make that noise?</p>
+  <button class="btn btn-red" onclick="admit()">😳 Admit It</button>
+  <button class="btn btn-blue" onclick="lie()">🤥 "Not me!"</button>
+</div>
+
+<!-- Store -->
+<div class="overlay" id="store">
+  <h2>🛒 Toy Shop</h2>
+  <p>Spend coins on quieter toys to stay hidden longer!</p>
+  <p style="color:var(--yellow); font-family:'Fredoka One',cursive; font-size:1.1rem; margin-bottom:0;">🪙 <span id="storeCoins">0</span> coins</p>
+  <div class="store-grid" id="storeGrid"></div>
+  <button class="btn btn-blue" onclick="closeStore()">✕ Close</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <script>
-let scene,camera,renderer,bot,bullets=[];
-let keys={},yaw=0,pitch=0,vy=0,onGround=true;
-let diff='weak',round=1,ps=0,bs=0,can=false;
-let playerPos = new THREE.Vector3(20,1,20);
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-function init(){
-scene=new THREE.Scene();
-camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-document.body.appendChild(renderer.domElement);
-
-let light=new THREE.DirectionalLight(0xffffff,1);
-light.position.set(10,20,10);
-scene.add(light);
-
-let floor=new THREE.Mesh(new THREE.BoxGeometry(80,1,80),new THREE.MeshStandardMaterial({color:0x1a1a1a}));
-floor.position.y=-.5;scene.add(floor);
-
-for(let i=0;i<6;i++){
- let p=new THREE.Mesh(new THREE.BoxGeometry(4,1,4),new THREE.MeshStandardMaterial({color:0x333333}));
- p.position.set(-15+i*6,1,-5);
- scene.add(p);
+// ─── SAVE DATA ───────────────────────────────────────────────────────────────
+function loadSave() {
+  try {
+    const raw = localStorage.getItem('classroomChaos_v2');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { coins: 0, owned: ['fidget'], equipped: 'fidget' };
+}
+function writeSave() {
+  localStorage.setItem('classroomChaos_v2', JSON.stringify(save));
 }
 
-bot=new THREE.Mesh(new THREE.BoxGeometry(1,2,1),new THREE.MeshStandardMaterial({color:0xff4444}));
-bot.position.set(-20,1,-20);
-scene.add(bot);
+let save = loadSave();
 
-let gun = new THREE.Group();
-let body = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,1.5), new THREE.MeshStandardMaterial({color:0x555555}));
-let barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1), new THREE.MeshStandardMaterial({color:0x222222}));
-barrel.rotation.x = Math.PI/2;
-barrel.position.z = -1;
- gun.add(body); gun.add(barrel);
- gun.position.set(0.6,-0.6,-2);
- camera.add(gun);
- scene.add(camera);
+// ─── TOY CATALOGUE ────────────────────────────────────────────────────────────
+const TOYS = [
+  {
+    id: 'fidget',
+    name: 'Fidget Cube',
+    emoji: '🎲',
+    price: 0,
+    noiseLevel: 5,       // out of 5
+    catchChance: 0.40,
+    color: 0xe74c3c,
+    desc: 'The classic. Loud and risky.'
+  },
+  {
+    id: 'spinner',
+    name: 'Spinner',
+    emoji: '🌀',
+    price: 60,
+    noiseLevel: 3,
+    catchChance: 0.25,
+    color: 0x3498db,
+    desc: 'A bit quieter. Still spinny.'
+  },
+  {
+    id: 'slime',
+    name: 'Silent Slime',
+    emoji: '🟢',
+    price: 140,
+    noiseLevel: 2,
+    catchChance: 0.15,
+    color: 0x06D6A0,
+    desc: 'Barely a sound. Feels good too.'
+  },
+  {
+    id: 'bubble',
+    name: 'Bubble Wrap',
+    emoji: '🫧',
+    price: 80,
+    noiseLevel: 4,
+    catchChance: 0.30,
+    color: 0x9b59b6,
+    desc: 'SO satisfying. A bit loud though.'
+  },
+  {
+    id: 'putty',
+    name: 'Thinking Putty',
+    emoji: '🟡',
+    price: 200,
+    noiseLevel: 1,
+    catchChance: 0.07,
+    color: 0xf39c12,
+    desc: 'Nearly silent. Premium stealth.'
+  },
+  {
+    id: 'ghost',
+    name: 'Ghost Toy',
+    emoji: '👻',
+    price: 350,
+    noiseLevel: 0,
+    catchChance: 0.02,
+    color: 0xecf0f1,
+    desc: 'Completely silent. Legendary.'
+  },
+];
 
-camera.position.copy(playerPos).add(new THREE.Vector3(0,1,2));
-if(!isMobile) document.body.requestPointerLock();
-
-if(isMobile){
- joystick.style.display='block';
- jumpBtn.style.display='block';
- shootBtn.style.display='block';
+function getEquippedToy() {
+  return TOYS.find(t => t.id === save.equipped) || TOYS[0];
 }
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let scene, camera, renderer;
+let toyMesh, teacherMesh, teacherTarget;
+let timer = 90;
+let gameRunning = false;
+let usedToy = false;
+let countdownInterval;
+let storeOpen = false;
+let fromMenu = false;
+
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('coinsVal').textContent = save.coins;
+  document.getElementById('storeCoins').textContent = save.coins;
+  document.getElementById('savedCoinsDisplay').textContent = save.coins;
+  const toy = getEquippedToy();
+  document.getElementById('noiseVal').textContent = '🔊'.repeat(toy.noiseLevel) || '🤫 Silent';
 }
 
-onkeydown=e=>keys[e.key.toLowerCase()]=1;
-onkeyup=e=>keys[e.key.toLowerCase()]=0;
+function toast(msg, color = '#06D6A0') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = color;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.style.opacity = '0', 2200);
+}
 
-onmousemove=e=>{
- if(document.pointerLockElement){
-  yaw-=e.movementX*0.002;
-  pitch-=e.movementY*0.002;
-  pitch=Math.max(-1.5,Math.min(1.5,pitch));
- }
+function showToyInfo() {
+  const toy = getEquippedToy();
+  const el = document.getElementById('toyInfo');
+  const stars = toy.noiseLevel === 0 ? '🤫 Silent!' : '🔊'.repeat(toy.noiseLevel);
+  el.innerHTML = `${toy.emoji} <b>${toy.name}</b> &nbsp;|&nbsp; Noise: ${stars}`;
+  el.style.display = 'block';
+}
+
+// ─── STORE ────────────────────────────────────────────────────────────────────
+function buildStoreGrid() {
+  const grid = document.getElementById('storeGrid');
+  grid.innerHTML = '';
+  TOYS.forEach(toy => {
+    const owned   = save.owned.includes(toy.id);
+    const equipped = save.equipped === toy.id;
+    const canAfford = save.coins >= toy.price;
+
+    const div = document.createElement('div');
+    div.className = 'store-item' +
+      (owned ? ' owned' : '') +
+      (!owned && !canAfford ? ' cant-afford' : '') +
+      (equipped ? ' equipped' : '');
+
+    // Noise pips
+    let pips = '';
+    for (let i = 0; i < 5; i++) {
+      pips += `<div class="noise-pip ${i < toy.noiseLevel ? 'on' : 'off'}"></div>`;
+    }
+
+    div.innerHTML = `
+      <span class="toy-emoji">${toy.emoji}</span>
+      <div class="toy-name">${toy.name}</div>
+      <div class="toy-noise">${toy.desc}</div>
+      <div class="noise-bar">${pips}</div>
+      <div class="toy-price">${toy.price === 0 ? 'Free' : '🪙 ' + toy.price}</div>
+      ${equipped ? '<span class="toy-badge badge-equipped">EQUIPPED</span>' : ''}
+      ${owned && !equipped ? '<span class="toy-badge badge-owned">OWNED</span>' : ''}
+    `;
+
+    if (!owned && canAfford) {
+      div.addEventListener('click', () => buyToy(toy.id));
+    } else if (owned && !equipped) {
+      div.addEventListener('click', () => equipToy(toy.id));
+    }
+
+    grid.appendChild(div);
+  });
+  document.getElementById('storeCoins').textContent = save.coins;
+}
+
+function openStore() {
+  storeOpen = true;
+  buildStoreGrid();
+  document.getElementById('store').style.display = 'block';
+}
+
+function closeStore() {
+  storeOpen = false;
+  document.getElementById('store').style.display = 'none';
+  if (!gameRunning) updateHUD();
+}
+
+function buyToy(id) {
+  const toy = TOYS.find(t => t.id === id);
+  if (!toy || save.owned.includes(id) || save.coins < toy.price) return;
+  save.coins -= toy.price;
+  save.owned.push(id);
+  save.equipped = id;
+  writeSave();
+  toast(`${toy.emoji} ${toy.name} unlocked & equipped!`);
+  buildStoreGrid();
+  updateHUD();
+  if (toyMesh) toyMesh.material.color.setHex(toy.color);
+}
+
+function equipToy(id) {
+  const toy = TOYS.find(t => t.id === id);
+  if (!toy || !save.owned.includes(id)) return;
+  save.equipped = id;
+  writeSave();
+  toast(`${toy.emoji} ${toy.name} equipped!`, '#118AB2');
+  buildStoreGrid();
+  updateHUD();
+  if (toyMesh) toyMesh.material.color.setHex(toy.color);
+  showToyInfo();
+}
+
+// ─── GAME LOGIC ───────────────────────────────────────────────────────────────
+function restartGame() {
+  document.getElementById('gameOver').style.display = 'none';
+  document.getElementById('winScreen').style.display = 'none';
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('dialog').style.display = 'none';
+  timer = 90;
+  usedToy = false;
+  gameRunning = false;
+  clearInterval(countdownInterval);
+  if (renderer) {
+    document.body.removeChild(renderer.domElement);
+    renderer = null; scene = null; toyMesh = null; teacherMesh = null; teacherTarget = null;
+  }
+  startGame();
+}
+
+function startGame() {
+  document.getElementById('menu').style.display = 'none';
+  init3D();
+  gameRunning = true;
+  updateHUD();
+  showToyInfo();
+  startCountdown();
+}
+
+function startCountdown() {
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    if (!gameRunning) { clearInterval(countdownInterval); return; }
+    timer--;
+    const el = document.getElementById('timerVal');
+    el.textContent = timer;
+    el.className = timer <= 15 ? 'low' : '';
+    if (timer <= 0) { clearInterval(countdownInterval); winGame(); }
+  }, 1000);
+}
+
+function addCoins(n) {
+  save.coins += n;
+  writeSave();
+  updateHUD();
+}
+
+function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+function admit() {
+  addCoins(rand(8, 18));
+  toast('😳 You admitted it... but got some coins for honesty.', '#EF476F');
+  loseGame('You admitted it. The teacher was disappointed…');
+}
+
+function lie() {
+  document.getElementById('dialog').style.display = 'none';
+  teacherTarget = null;
+  toast('🤥 Phew! They believed you... for now.', '#118AB2');
+}
+
+function loseGame(msg = 'The teacher caught you red-handed!') {
+  gameRunning = false;
+  clearInterval(countdownInterval);
+  document.getElementById('dialog').style.display = 'none';
+  document.getElementById('gameOverMsg').textContent = msg;
+  document.getElementById('gameOver').style.display = 'block';
+}
+
+function winGame() {
+  gameRunning = false;
+  clearInterval(countdownInterval);
+  const earned = usedToy ? rand(50, 160) : rand(2, 8);
+  addCoins(earned);
+  const toy = getEquippedToy();
+  document.getElementById('winMsg').textContent =
+    `You survived! ${usedToy ? `Your ${toy.emoji} ${toy.name} paid off.` : 'You barely played at all!'} +${earned} 🪙`;
+  document.getElementById('winScreen').style.display = 'block';
+  toast(`+${earned} 🪙 coins earned!`);
+}
+
+// ─── SOUND EFFECTS ────────────────────────────────────────────────────────────
+const TOY_SOUNDS = {
+  fidget : 'https://actions.google.com/sounds/v1/cartoon/pop.ogg',
+  spinner : 'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg',
+  slime   : 'https://actions.google.com/sounds/v1/cartoon/squishy_sounds_2.ogg',
+  bubble  : 'https://actions.google.com/sounds/v1/cartoon/pop.ogg',
+  putty   : 'https://actions.google.com/sounds/v1/cartoon/squishy_sounds_1.ogg',
+  ghost   : null,
 };
 
-function move(){
- if(!can) return;
- let speed=0.3;
- let f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
- let r=new THREE.Vector3().crossVectors(f,new THREE.Vector3(0,1,0));
-
- if(keys['w']) playerPos.add(f.clone().multiplyScalar(-speed));
- if(keys['s']) playerPos.add(f.clone().multiplyScalar(speed));
- if(keys['a']) playerPos.add(r.clone().multiplyScalar(speed));
- if(keys['d']) playerPos.add(r.clone().multiplyScalar(-speed));
-
- if(keys[' ']&&onGround){vy=.4;onGround=false;}
- vy-=.02;playerPos.y+=vy;
- if(playerPos.y<=1){playerPos.y=1;vy=0;onGround=true;}
-
- camera.position.copy(playerPos).add(new THREE.Vector3(0,1,2));
- camera.rotation.set(pitch,yaw,0);
-
- let dir=new THREE.Vector3().subVectors(playerPos,bot.position).normalize();
- let side=new THREE.Vector3(-dir.z,0,dir.x);
- let dodge=Math.sin(Date.now()*0.006)*3;
- bot.position.add(dir.multiplyScalar(speed*0.8));
- bot.position.add(side.multiplyScalar(dodge*0.06));
-
- let chance=diff==='weak'?0.004:diff==='mid'?0.008:0.015;
- if(Math.random()<chance) shoot(bot,playerPos);
+function playToySound() {
+  const url = TOY_SOUNDS[save.equipped];
+  if (!url) return;
+  try {
+    const a = new Audio(url);
+    a.volume = Math.max(0.05, getEquippedToy().noiseLevel / 5);
+    a.play();
+  } catch(e) {}
 }
 
-function shoot(from,to){
- let b=new THREE.Mesh(new THREE.SphereGeometry(.15),new THREE.MeshBasicMaterial({color:0xffff00}));
- b.position.copy(from.position);
- let d=new THREE.Vector3().subVectors(to,from.position).normalize();
- bullets.push({m:b,d});scene.add(b);
+// ─── 3D SCENE ─────────────────────────────────────────────────────────────────
+function init3D() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.Fog(0xd0e8f5, 15, 35);
+
+  camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 2.4, 8);
+  camera.lookAt(0, 1, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.insertBefore(renderer.domElement, document.body.firstChild);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffeedd, 0.55);
+  scene.add(ambient);
+
+  const sun = new THREE.DirectionalLight(0xfffbe8, 1.2);
+  sun.position.set(6, 12, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width  = 2048;
+  sun.shadow.mapSize.height = 2048;
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far  = 40;
+  sun.shadow.camera.left = -12;
+  sun.shadow.camera.right = 12;
+  sun.shadow.camera.top = 12;
+  sun.shadow.camera.bottom = -12;
+  scene.add(sun);
+
+  // Ceiling lights
+  [-4, 0, 4].forEach(x => {
+    const bulb = new THREE.PointLight(0xfffbe0, 0.6, 12);
+    bulb.position.set(x, 4.8, 0);
+    scene.add(bulb);
+    // light fixture
+    const fix = new THREE.Mesh(
+      new THREE.BoxGeometry(1.2, 0.08, 0.4),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfffbe0, emissiveIntensity: 0.6 })
+    );
+    fix.position.set(x, 4.88, 0);
+    scene.add(fix);
+  });
+
+  buildRoom();
+  buildDesks();
+  buildTeacher();
+  buildToy();
+  buildBlackboard();
+  buildExtras();
+
+  window.addEventListener('click', onToyClick);
+  window.addEventListener('resize', onResize);
+
+  animate3D();
 }
 
-onclick=()=>{if(can) shoot(camera, bot.position)};
-shootBtn.onclick=()=>{if(can) shoot(camera, bot.position)};
-
-function bulletsUpdate(){
- bullets.forEach((b,i)=>{
-  b.m.position.add(b.d.clone().multiplyScalar(1.5));
-  if(b.m.position.distanceTo(bot.position)<1) end('player');
-  if(b.m.position.distanceTo(playerPos)<1) end('bot');
-  if(b.m.position.length()>120){scene.remove(b.m);bullets.splice(i,1);} 
- });
+function makeMaterial(color, rough = 0.75, metal = 0) {
+  return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
 }
 
-function end(w){
- can=false;
- if(w==='player')ps++; else bs++;
- if(round>=3){ endDiv.innerHTML=(ps>bs?'YOU WIN':'BOT WINS'); endDiv.style.display='block'; return; }
- round++; update(); reset(); count();
+function buildRoom() {
+  const W = 18, H = 6, D = 16;
+
+  // Floor – linoleum tiles
+  const floorTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#c8b89a';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.strokeStyle = '#b0a080';
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= 128; i += 32) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,128); ctx.stroke(); }
+    for (let j = 0; j <= 128; j += 32) { ctx.beginPath(); ctx.moveTo(0,j); ctx.lineTo(128,j); ctx.stroke(); }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(6, 5);
+    return t;
+  })();
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(W, D),
+    new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Ceiling
+  const ceilMat = makeMaterial(0xf0ede6, 0.9);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W, D), ceilMat);
+  ceil.rotation.x = Math.PI / 2;
+  ceil.position.y = H;
+  scene.add(ceil);
+
+  // Walls
+  // Back wall (behind teacher)
+  buildWall(W, H, 0, H/2, -D/2, 0,     0xdfd0b5, true);
+  // Front wall (behind player)
+  buildWall(W, H, 0, H/2,  D/2, Math.PI, 0xdfd0b5, false);
+  // Left wall
+  buildWall(D, H, -W/2, H/2, 0, Math.PI/2, 0xd8c9a8, false);
+  // Right wall
+  buildWall(D, H,  W/2, H/2, 0, -Math.PI/2, 0xd8c9a8, false);
+
+  // Skirting boards
+  [
+    [W, 0, -D/2, 0],
+    [W, 0,  D/2, Math.PI],
+    [D, -W/2, 0, Math.PI/2],
+    [D,  W/2, 0, -Math.PI/2],
+  ].forEach(([len, x, z, ry]) => {
+    const sk = new THREE.Mesh(
+      new THREE.BoxGeometry(len, 0.18, 0.06),
+      makeMaterial(0x8b7355, 0.8)
+    );
+    sk.position.set(x, 0.09, z);
+    sk.rotation.y = ry;
+    scene.add(sk);
+  });
+
+  // Windows on right wall
+  const windowPositions = [-5, 0, 5];
+  windowPositions.forEach(z => {
+    buildWindow(W/2 - 0.05, H/2 + 0.3, z);
+  });
+
+  // Door on left wall
+  buildDoor(-W/2 + 0.05, H/2 - 1.2, 4);
 }
 
-function reset(){ playerPos.set(20,1,20); bot.position.set(-20,1,-20); }
-function update(){ r.innerText=round; psEl.innerText=ps; bsEl.innerText=bs; }
-
-function start(d){ diff=d; menu.style.display='none'; hud.style.display='block'; init(); count(); loop(); }
-
-function count(){
- let c=3; countdown.innerText=c;
- let t=setInterval(()=>{
-  c--;
-  if(c<=0){ clearInterval(t); countdown.innerText=''; can=true; }
-  else countdown.innerText=c;
- },1000);
+function buildWall(w, h, x, y, z, ry, color, receiveShadow = false) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), makeMaterial(color, 0.9));
+  m.position.set(x, y, z);
+  m.rotation.y = ry;
+  if (receiveShadow) m.receiveShadow = true;
+  scene.add(m);
 }
 
-function askExit(){ confirmExit.style.display='block'; }
-function closeExit(){ confirmExit.style.display='none'; }
-function exitGame(){ location.reload(); }
+function buildWindow(x, y, z) {
+  const group = new THREE.Group();
 
-// joystick
-let stick=document.getElementById('stick');
-joystick.addEventListener('touchmove', e=>{
- let t=e.touches[0]; let r=joystick.getBoundingClientRect();
- let x=(t.clientX-r.left-60)/40;
- let y=(t.clientY-r.top-60)/40;
- stick.style.left=(40+x*20)+'px';
- stick.style.top=(40+y*20)+'px';
- playerPos.x+=x*0.3;
- playerPos.z+=y*0.3;
-});
+  // Frame
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 2.2, 1.6),
+    makeMaterial(0xffffff, 0.6)
+  );
+  group.add(frame);
 
-jumpBtn.onclick=()=>{ if(onGround){vy=.4;onGround=false;} };
+  // Glass panes
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0xadd8e6, transparent: true, opacity: 0.35,
+    roughness: 0.05, metalness: 0.1
+  });
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.0), glassMat);
+  glass.rotation.y = -Math.PI / 2;
+  glass.position.x = 0.06;
+  group.add(glass);
 
-function loop(){ requestAnimationFrame(loop); move(); bulletsUpdate(); renderer.render(scene,camera); }
+  // Window pane dividers
+  const divMat = makeMaterial(0xffffff, 0.5);
+  const hBar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 1.5), divMat);
+  group.add(hBar);
+  const vBar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, 0.06), divMat);
+  group.add(vBar);
 
-const menu=document.getElementById('menu');
-const hud=document.getElementById('hud');
-const r=document.getElementById('r');
-const psEl=document.getElementById('ps');
-const bsEl=document.getElementById('bs');
-const countdown=document.getElementById('countdown');
-const endDiv=document.getElementById('end');
-const confirmExit=document.getElementById('confirmExit');
+  // Sunlight stripe (yellow glow on floor from window)
+  const sunGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.4, 3),
+    new THREE.MeshStandardMaterial({ color: 0xfffacd, transparent: true, opacity: 0.08 })
+  );
+  sunGlow.rotation.x = -Math.PI / 2;
+  sunGlow.position.set(2, 0.01, 0);
+  group.add(sunGlow);
+
+  // Sill
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 1.7), makeMaterial(0xffffff, 0.7));
+  sill.position.set(0.12, -1.05, 0);
+  group.add(sill);
+
+  group.position.set(x, y, z);
+  scene.add(group);
+}
+
+function buildDoor(x, y, z) {
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(0.1, 3.2, 1.4),
+    makeMaterial(0x8b6914, 0.8)
+  );
+  frame.position.set(x, y, z);
+  scene.add(frame);
+
+  const panel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 2.9, 1.1),
+    makeMaterial(0xb8860b, 0.7)
+  );
+  panel.position.set(x + 0.02, y - 0.15, z);
+  scene.add(panel);
+
+  // Door knob
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), makeMaterial(0xffd700, 0.3, 0.8));
+  knob.position.set(x + 0.1, y - 0.2, z + 0.4);
+  scene.add(knob);
+}
+
+function buildDesks() {
+  const deskMat = makeMaterial(0xa0522d, 0.75);
+  const legMat  = makeMaterial(0x7a3b1e, 0.8);
+  const chairMat = makeMaterial(0x4a90d9, 0.7);
+  const bookMat = makeMaterial(0xe74c3c, 0.8);
+  const noteMat = makeMaterial(0xffffff, 0.85);
+
+  const cols = [-5, -1.5, 1.5, 5];
+  const rows = [-3.5, -1, 1.5, 4];
+
+  cols.forEach(cx => {
+    rows.forEach((rz, ri) => {
+      // Desk top
+      const top = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.07, 0.9), deskMat);
+      top.position.set(cx, 0.72, rz);
+      top.castShadow = true; top.receiveShadow = true;
+      scene.add(top);
+
+      // Legs
+      [[-0.6,-0.35],[0.6,-0.35],[-0.6,0.35],[0.6,0.35]].forEach(([lx,lz]) => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.7,6), legMat);
+        leg.position.set(cx+lx, 0.35, rz+lz);
+        scene.add(leg);
+      });
+
+      // Pencil on desk
+      const pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.5,6), makeMaterial(0xFFD700,0.7));
+      pencil.rotation.z = Math.PI/2;
+      pencil.position.set(cx+0.3, 0.77, rz+0.1);
+      scene.add(pencil);
+
+      // Book on desk
+      if (Math.random() > 0.4) {
+        const book = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.04,0.28), makeMaterial(
+          [0xe74c3c,0x3498db,0x2ecc71,0x9b59b6][Math.floor(Math.random()*4)], 0.8
+        ));
+        book.position.set(cx - 0.3, 0.76, rz);
+        scene.add(book);
+      }
+
+      // Chair
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.06, 0.75), chairMat);
+      seat.position.set(cx, 0.44, rz + 0.75);
+      seat.castShadow = true;
+      scene.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.55, 0.06), chairMat);
+      back.position.set(cx, 0.75, rz + 1.1);
+      scene.add(back);
+      [[-0.35,-0.32],[0.35,-0.32],[-0.35,0.32],[0.35,0.32]].forEach(([lx,lz]) => {
+        const cl = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.44,6), legMat);
+        cl.position.set(cx+lx, 0.22, rz+0.75+lz);
+        scene.add(cl);
+      });
+    });
+  });
+
+  // Player desk marker (slightly glowing)
+  const playerDesk = new THREE.Mesh(
+    new THREE.BoxGeometry(1.45, 0.075, 0.95),
+    new THREE.MeshStandardMaterial({ color: 0xa0522d, roughness: 0.7, emissive: 0xFFD166, emissiveIntensity: 0.08 })
+  );
+  playerDesk.position.set(0, 0.72, 4);
+  scene.add(playerDesk);
+}
+
+function buildBlackboard() {
+  // Board backing
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(8, 2.5, 0.12),
+    makeMaterial(0x2d5a27, 0.9)
+  );
+  board.position.set(0, 3.2, -7.88);
+  board.castShadow = true;
+  scene.add(board);
+
+  // Frame
+  const frameMat = makeMaterial(0x5c3a1e, 0.7);
+  [[8.3,0.12,0.1, 0,2.0,-7.87],[8.3,0.12,0.1, 0,4.4,-7.87],
+   [0.12,2.7,0.12,-4.15,3.2,-7.87],[0.12,2.7,0.12,4.15,3.2,-7.87]
+  ].forEach(([w,h,d,x,y,z]) => {
+    const f = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), frameMat);
+    f.position.set(x,y,z);
+    scene.add(f);
+  });
+
+  // Chalk tray
+  const tray = new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.15, 0.25), makeMaterial(0x5c3a1e,0.8));
+  tray.position.set(0, 1.95, -7.8);
+  scene.add(tray);
+
+  // Chalk sticks
+  [-2, 0, 1, 2.5].forEach(cx => {
+    const chalk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 0.28, 6),
+      makeMaterial([0xffffff,0xf5f5dc,0xffe4e1][Math.floor(Math.random()*3)], 0.95)
+    );
+    chalk.rotation.z = Math.PI / 2;
+    chalk.position.set(cx, 2.04, -7.74);
+    scene.add(chalk);
+  });
+
+  // "Writing" on board (white lines)
+  const writeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, emissive: 0xffffff, emissiveIntensity: 0.3 });
+  [-1.5, 0.5, 2].forEach(x => {
+    const line = new THREE.Mesh(new THREE.BoxGeometry(1.2 + Math.random(), 0.04, 0.01), writeMat);
+    line.position.set(x - 0.5, 3.2 + Math.random() * 0.6 - 0.3, -7.81);
+    scene.add(line);
+  });
+
+  // Teacher's desk (front)
+  const tDesk = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.1, 1.0), makeMaterial(0x8b5e3c, 0.75));
+  tDesk.position.set(0, 0.8, -5.8);
+  tDesk.castShadow = true; tDesk.receiveShadow = true;
+  scene.add(tDesk);
+  [[-1, 0.5],[-1,-0.5],[1,0.5],[1,-0.5]].forEach(([lx,lz]) => {
+    const tl = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.8,6), makeMaterial(0x5c3a1e,0.8));
+    tl.position.set(lx, 0.4, -5.8+lz);
+    scene.add(tl);
+  });
+  // Apple on teacher's desk
+  const apple = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 10), makeMaterial(0xe74c3c, 0.6));
+  apple.position.set(-0.8, 0.96, -5.8);
+  scene.add(apple);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.1,5), makeMaterial(0x5c3a1e,0.8));
+  stem.position.set(-0.8, 1.07, -5.8);
+  scene.add(stem);
+}
+
+function buildExtras() {
+  // Bookshelf on left wall
+  const shelfMat = makeMaterial(0x6d4c41, 0.8);
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3, 2), shelfMat);
+  shelf.position.set(-8.85, 1.5, -4);
+  scene.add(shelf);
+
+  // Books on shelf
+  const bookColors = [0xe74c3c, 0x3498db, 0x2ecc71, 0xf39c12, 0x9b59b6, 0x1abc9c];
+  for (let row = 0; row < 3; row++) {
+    let bx = -0.7;
+    bookColors.sort(() => Math.random()-0.5);
+    bookColors.forEach((col, i) => {
+      const bw = 0.12 + Math.random()*0.06;
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.55+Math.random()*0.2, bw), makeMaterial(col, 0.8));
+      b.position.set(-8.75, 0.6+row*0.85, -4.7+i*0.2+bx);
+      scene.add(b);
+    });
+  }
+
+  // Clock on back wall
+  const clockBody = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.07,32), makeMaterial(0xffffff, 0.6));
+  clockBody.rotation.x = Math.PI/2;
+  clockBody.position.set(4, 4.5, -7.9);
+  scene.add(clockBody);
+  const clockRim = new THREE.Mesh(new THREE.TorusGeometry(0.35,0.04,8,32), makeMaterial(0x333333,0.6));
+  clockRim.rotation.x = Math.PI/2;
+  clockRim.position.set(4, 4.5, -7.88);
+  scene.add(clockRim);
+
+  // Potted plant near door
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.14,0.3,10), makeMaterial(0xc17f47,0.8));
+  pot.position.set(-7.8, 0.15, 3.5);
+  scene.add(pot);
+  const plant = new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8), makeMaterial(0x2ecc71,0.7));
+  plant.position.set(-7.8, 0.65, 3.5);
+  plant.scale.set(1,0.8,1);
+  scene.add(plant);
+
+  // Projector screen (rolled up on ceiling)
+  const screen = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,5,12), makeMaterial(0xeeeeee,0.9));
+  screen.rotation.z = Math.PI/2;
+  screen.position.set(0, 5.85, -6.5);
+  scene.add(screen);
+}
+
+function buildTeacher() {
+  const group = new THREE.Group();
+
+  // Body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.0, 0.35), makeMaterial(0x2c3e87, 0.7));
+  body.position.y = 0.5;
+  body.castShadow = true;
+  group.add(body);
+
+  // Skirt/lower
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.35,0.6,10), makeMaterial(0x1a2860,0.75));
+  skirt.position.y = -0.05;
+  group.add(skirt);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), makeMaterial(0xf5c5a3, 0.6));
+  head.position.y = 1.18;
+  head.castShadow = true;
+  group.add(head);
+
+  // Hair
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.23, 12, 12), makeMaterial(0x3b1a08, 0.8));
+  hair.position.y = 1.3;
+  hair.scale.set(1, 0.55, 1);
+  group.add(hair);
+
+  // Glasses
+  const glassMat = makeMaterial(0x111111, 0.4, 0.5);
+  [-0.1, 0.1].forEach(gx => {
+    const glassFrame = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.01, 8, 16), glassMat);
+    glassFrame.position.set(gx, 1.2, 0.2);
+    group.add(glassFrame);
+  });
+  const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.08,6), glassMat);
+  bridge.rotation.z = Math.PI/2;
+  bridge.position.set(0, 1.2, 0.21);
+  group.add(bridge);
+
+  // Arms
+  const armMat = makeMaterial(0x2c3e87, 0.7);
+  [-0.35, 0.35].forEach(ax => {
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.06,0.75,8), armMat);
+    arm.position.set(ax, 0.6, 0);
+    arm.rotation.z = ax < 0 ? 0.3 : -0.3;
+    group.add(arm);
+  });
+
+  // Pointer (stick)
+  const pointer = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.01,0.9,6), makeMaterial(0x8b5e3c,0.8));
+  pointer.rotation.z = -0.4;
+  pointer.position.set(0.45, 0.7, 0.1);
+  group.add(pointer);
+
+  group.position.set(0, 0.35, -5.3);
+  scene.add(group);
+  teacherMesh = group;
+}
+
+function buildToy() {
+  const toy = getEquippedToy();
+  toyMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(0.28, 0.28, 0.28),
+    new THREE.MeshStandardMaterial({ color: toy.color, roughness: 0.5, metalness: 0.1,
+      emissive: toy.color, emissiveIntensity: 0.12 })
+  );
+  toyMesh.position.set(0, 0.86, 4);
+  toyMesh.castShadow = true;
+  scene.add(toyMesh);
+}
+
+// ─── INTERACTION ──────────────────────────────────────────────────────────────
+function onToyClick(event) {
+  if (!gameRunning || storeOpen) return;
+  const mouse = new THREE.Vector2(
+    (event.clientX / window.innerWidth) * 2 - 1,
+    -(event.clientY / window.innerHeight) * 2 + 1
+  );
+  const rc = new THREE.Raycaster();
+  rc.setFromCamera(mouse, camera);
+  if (rc.intersectObject(toyMesh).length > 0) {
+    usedToy = true;
+    playToySound();
+    toyMesh.scale.set(0.7, 0.7, 0.7);
+    setTimeout(() => toyMesh && toyMesh.scale.set(1, 1, 1), 220);
+    detectTeacher();
+  }
+}
+
+function detectTeacher() {
+  const toy = getEquippedToy();
+  if (Math.random() < toy.catchChance) {
+    moveTeacherToPlayer(true);
+  } else if (Math.random() < toy.catchChance * 1.5) {
+    moveTeacherToPlayer(false);
+  }
+}
+
+function moveTeacherToPlayer(certain) {
+  const target = new THREE.Vector3(0, 0.35, 3.0);
+  teacherTarget = target;
+  const interval = setInterval(() => {
+    if (!teacherMesh) { clearInterval(interval); return; }
+    teacherMesh.position.lerp(target, 0.055);
+    // Face player
+    teacherMesh.rotation.y = Math.atan2(
+      toyMesh.position.x - teacherMesh.position.x,
+      toyMesh.position.z - teacherMesh.position.z
+    );
+    if (teacherMesh.position.distanceTo(target) < 0.35) {
+      clearInterval(interval);
+      teacherTarget = null;
+      if (certain) {
+        loseGame('The teacher heard your toy and caught you!');
+      } else {
+        document.getElementById('dialog').style.display = 'block';
+      }
+    }
+  }, 16);
+}
+
+function onResize() {
+  if (!camera || !renderer) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
+let wanderTimer = 0;
+function animate3D() {
+  requestAnimationFrame(animate3D);
+  const t = Date.now() * 0.001;
+
+  // Toy bob
+  if (toyMesh) toyMesh.position.y = 0.86 + Math.sin(t * 2) * 0.012;
+
+  // Teacher wander
+  if (!teacherTarget) {
+    wanderTimer -= 0.016;
+    if (wanderTimer <= 0) {
+      wanderTimer = 2 + Math.random() * 3;
+      const nx = (Math.random() - 0.5) * 10;
+      const nz = (Math.random() - 0.5) * 8 - 1;
+      teacherTarget = new THREE.Vector3(nx, 0.35, Math.max(-6.5, Math.min(2, nz)));
+    }
+  }
+
+  if (teacherTarget && teacherMesh) {
+    teacherMesh.position.lerp(teacherTarget, 0.008);
+    teacherMesh.rotation.y = Math.atan2(
+      teacherTarget.x - teacherMesh.position.x,
+      teacherTarget.z - teacherMesh.position.z
+    );
+    if (teacherMesh.position.distanceTo(teacherTarget) < 0.25) teacherTarget = null;
+  }
+
+  renderer && renderer.render(scene, camera);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+updateHUD();
 </script>
 </body>
 </html>
